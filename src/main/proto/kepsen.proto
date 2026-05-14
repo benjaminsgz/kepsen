@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "uk.sienne";
+option java_outer_classname = "Kepsen";
+option objc_class_prefix = "HLW";
+
+package uk.sienne;
+
+service KepsenService {
+  rpc send (KepsenRequest) returns (KepsenReply) {}
+}
+
+message KepsenRequest {
+  string name = 1;
+}
+
+message KepsenReply {
+  string message = 1;
+}
