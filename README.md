@@ -1,5 +1,7 @@
 # Kepsen
 
+[中文](README.zh.md)
+
 A multi-module Java library that adds **mTLS mutual authentication** and **method-level ACL authorization** to gRPC servers, with first-class integrations for Spring Boot and Micronaut.
 
 ## Overview
