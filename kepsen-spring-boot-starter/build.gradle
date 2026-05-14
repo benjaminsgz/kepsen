@@ -1,0 +1,26 @@
+tasks.named("compileJava", JavaCompile) {
+    source project(":kepsen-grpc").sourceSets.main.java
+    source project(":kepsen-core").sourceSets.main.java
+}
+
+tasks.named("javadoc", Javadoc) {
+    source project(":kepsen-grpc").sourceSets.main.allJava
+    source project(":kepsen-core").sourceSets.main.allJava
+}
+
+tasks.named("jar") {
+    exclude "uk/sienne/grpcauth/core/**"
+    exclude "uk/sienne/grpcauth/grpc/**"
+}
+
+dependencies {
+    api project(":kepsen-grpc")
+
+    compileOnly libs.spring.boot.autoconfigure
+    compileOnly libs.grpc.spring.starter
+    compileOnly libs.grpc.netty
+    compileOnly libs.slf4j.api
+
+    annotationProcessor libs.spring.boot.autoconfigure.processor
+    annotationProcessor libs.spring.boot.configuration.processor
+}

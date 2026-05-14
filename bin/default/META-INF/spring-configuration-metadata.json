@@ -1,1 +1,0 @@
-{"groups":[{"name":"service-acl.rules.*","type":"uk.sienne.security.AclRuleProperties"}],"properties":[{"name":"service-acl.rules.*.method","type":"java.lang.String","sourceType":"uk.sienne.security.AclRuleProperties"},{"name":"service-acl.rules.*.allowed-clients","type":"java.util.List","sourceType":"uk.sienne.security.AclRuleProperties"}]}

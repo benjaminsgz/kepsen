@@ -1,0 +1,34 @@
+plugins {
+    id "io.micronaut.library"
+}
+
+micronaut {
+    version libs.versions.micronaut.get()
+}
+
+tasks.named("compileJava", JavaCompile) {
+    source project(":kepsen-grpc").sourceSets.main.java
+    source project(":kepsen-core").sourceSets.main.java
+}
+
+tasks.named("javadoc", Javadoc) {
+    source project(":kepsen-grpc").sourceSets.main.allJava
+    source project(":kepsen-core").sourceSets.main.allJava
+}
+
+tasks.named("jar") {
+    exclude "uk/sienne/grpcauth/core/**"
+    exclude "uk/sienne/grpcauth/grpc/**"
+}
+
+dependencies {
+    api project(":kepsen-grpc")
+
+    annotationProcessor libs.micronaut.inject.java
+
+    compileOnly libs.grpc.netty
+    compileOnly libs.slf4j.api
+    implementation libs.micronaut.context
+    implementation libs.micronaut.grpc.runtime
+    implementation libs.micronaut.inject
+}

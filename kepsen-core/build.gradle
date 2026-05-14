@@ -1,0 +1,8 @@
+tasks.named("compileTestJava", JavaCompile) {
+    source sourceSets.main.java
+}
+
+dependencies {
+    testImplementation libs.junit.api
+    testRuntimeOnly libs.junit.engine
+}
