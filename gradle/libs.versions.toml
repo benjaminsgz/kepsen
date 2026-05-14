@@ -1,0 +1,25 @@
+[versions]
+grpc          = "1.75.0"
+micronaut     = "4.10.14"
+spring-boot   = "3.4.5"
+grpc-spring   = "3.1.0.RELEASE"
+junit         = "5.11.0"
+
+[libraries]
+grpc-api              = { module = "io.grpc:grpc-api",                                    version.ref = "grpc" }
+grpc-netty            = { module = "io.grpc:grpc-netty",                                  version.ref = "grpc" }
+grpc-stub             = { module = "io.grpc:grpc-stub",                                   version.ref = "grpc" }
+slf4j-api             = { module = "org.slf4j:slf4j-api",                                 version = "2.0.16" }
+micronaut-context     = { module = "io.micronaut:micronaut-context",                      version.ref = "micronaut" }
+micronaut-inject      = { module = "io.micronaut:micronaut-inject",                       version.ref = "micronaut" }
+micronaut-inject-java = { module = "io.micronaut:micronaut-inject-java",                  version.ref = "micronaut" }
+micronaut-grpc-runtime = { module = "io.micronaut.grpc:micronaut-grpc-runtime",           version = "4.11.0" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
+spring-boot-autoconfigure-processor = { module = "org.springframework.boot:spring-boot-autoconfigure-processor", version.ref = "spring-boot" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
+grpc-spring-starter   = { module = "net.devh:grpc-server-spring-boot-starter",            version.ref = "grpc-spring" }
+junit-api             = { module = "org.junit.jupiter:junit-jupiter-api",                 version.ref = "junit" }
+junit-engine          = { module = "org.junit.jupiter:junit-jupiter-engine",              version.ref = "junit" }
+
+[plugins]
+micronaut-library = { id = "io.micronaut.library", version.ref = "micronaut" }

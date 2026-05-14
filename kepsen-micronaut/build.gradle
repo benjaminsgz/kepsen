@@ -1,0 +1,17 @@
+plugins {
+    id "io.micronaut.library"
+}
+
+micronaut {
+    version libs.versions.micronaut.get()
+}
+
+dependencies {
+    api project(":kepsen-grpc")
+
+    annotationProcessor libs.micronaut.inject.java
+
+    implementation libs.micronaut.context
+    implementation libs.micronaut.grpc.runtime
+    implementation libs.micronaut.inject
+}

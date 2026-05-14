@@ -1,113 +1,39 @@
 plugins {
-    // Micronaut 应用插件，负责应用打包、运行和约定配置
-    id("io.micronaut.application") version "4.6.2"
-    // 生成 protobuf / gRPC 代码
-    id("com.google.protobuf") version "0.10.0"
-    // 打 fat jar，方便把依赖一起带上
-    id("com.gradleup.shadow") version "9.4.1"
+    id "io.micronaut.library" version "4.6.2" apply false
 }
 
-version = "0.1"
-group = "uk.sienne"
+subprojects {
+    apply plugin: "java-library"
+    apply plugin: "maven-publish"
 
+    group   = "uk.sienne"
+    version = "0.1.0"
 
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+        withSourcesJar()
+        withJavadocJar()
+    }
 
-repositories {
-    mavenCentral()
-}
+    repositories {
+        mavenCentral()
+    }
 
-dependencies {
-    // 编译期生成 Micronaut 序列化相关代码
-    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
-    // 服务发现支持
-    implementation("io.micronaut:micronaut-discovery-core")
-    // Micronaut gRPC 运行时
-    implementation("io.micronaut.grpc:micronaut-grpc-runtime")
-    // 编程式配置 gRPC Netty TLS / mTLS
-    implementation("io.grpc:grpc-netty")
-    // JSON 序列化
-    implementation("io.micronaut.serde:micronaut-serde-jackson")
-    // 兼容仍然依赖 javax.annotation 的库
-    implementation("javax.annotation:javax.annotation-api")
-    // 运行时日志实现
-    runtimeOnly("ch.qos.logback:logback-classic")
-    testImplementation("io.micronaut.test:micronaut-test-junit5")
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
-    // 测试时需要的 JUnit Platform launcher
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-}
+    test {
+        useJUnitPlatform()
+    }
 
+    tasks.withType(JavaCompile).configureEach {
+        options.release = 21
+    }
 
-
-application {
-    // 应用入口类，Gradle 会据此启动程序
-    mainClass = "uk.sienne.Application"
-}
-
-java {
-    // 统一使用 Java 21 编译目标
-    sourceCompatibility = JavaVersion.toVersion("21")
-    targetCompatibility = JavaVersion.toVersion("21")
-}
-
-
-
-
-
-
-sourceSets {
-    main {
-        java {
-            // protobuf 生成的 gRPC Java 源码
-            srcDirs("build/generated/source/proto/main/grpc")
-            // protobuf 生成的消息类源码
-            srcDirs("build/generated/source/proto/main/java")
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
         }
     }
 }
-
-protobuf {
-    // protoc 编译器版本
-    protoc { artifact = "com.google.protobuf:protoc:3.25.8" }
-    plugins {
-        // gRPC Java 代码生成器
-        grpc { artifact = "io.grpc:protoc-gen-grpc-java:1.75.0" }
-    }
-    generateProtoTasks {
-        // 给所有 proto 生成任务都启用 grpc 插件
-        all()*.plugins { grpc {} }
-    }
-}
-
-
-
-micronaut {
-    // 测试运行时使用 JUnit 5
-    testRuntime("junit5")
-    processing {
-        // 开启增量注解处理，加快编译
-        incremental(true)
-        // 只扫描这个包，减少处理范围
-        annotations("uk.sienne.*")
-    }
-}
-
-
-tasks.named("dockerfileNative") {
-    // 生成原生镜像 Dockerfile 时使用 JDK 21
-    jdkVersion = "21"
-}
-
-graalvmNative {
-    binaries {
-        main {
-            buildArgs.add("-O2")
-            buildArgs.add("--install-exit-handlers")
-        }
-    }
-}
-
-
-
-

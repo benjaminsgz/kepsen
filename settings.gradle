@@ -1,8 +1,12 @@
+plugins {
+    id "org.gradle.toolchains.foojay-resolver-convention" version "1.0.0"
+}
 
+rootProject.name = "kepsen"
 
-
-
-
-
-rootProject.name="kepsen"
-
+include(
+    "kepsen-core",
+    "kepsen-grpc",
+    "kepsen-micronaut",
+    "kepsen-spring-boot-starter"
+)

@@ -1,0 +1,9 @@
+dependencies {
+    api project(":kepsen-grpc")
+
+    compileOnly libs.spring.boot.autoconfigure
+    compileOnly libs.grpc.spring.starter
+
+    annotationProcessor libs.spring.boot.autoconfigure.processor
+    annotationProcessor libs.spring.boot.configuration.processor
+}

@@ -1,0 +1,7 @@
+dependencies {
+    api project(":kepsen-core")
+    api libs.grpc.api
+
+    implementation libs.grpc.netty
+    implementation libs.slf4j.api
+}
