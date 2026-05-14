@@ -10,10 +10,12 @@ import java.util.Set;
 public class MethodAclAuthorizer {
 
     private final AclProperties props;
+    private final List<AclRuleProperties> rules;
 
-    public MethodAclAuthorizer(AclProperties props) {
+    public MethodAclAuthorizer(AclProperties props, List<AclRuleProperties> rules) {
         this.props = props;
-        validate(props);
+        this.rules = List.copyOf(rules);
+        validate(props, this.rules);
     }
 
     public boolean isAllowed(String clientIdentity, String fullMethodName) {
@@ -23,7 +25,7 @@ public class MethodAclAuthorizer {
 
         String serviceName = fullMethodName.split("/", 2)[0];
 
-        for (AclProperties.Rule rule : props.getRules()) {
+        for (AclRuleProperties rule : rules) {
             if (matches(rule.getMethod(), fullMethodName, serviceName)) {
                 Set<String> allowed = new HashSet<>(rule.getAllowedClients());
                 if (allowed.contains(clientIdentity)) {
@@ -41,7 +43,7 @@ public class MethodAclAuthorizer {
                 || pattern.equals("*");
     }
 
-    private void validate(AclProperties props) {
+    private void validate(AclProperties props, List<AclRuleProperties> rules) {
         if (!"deny".equalsIgnoreCase(props.getDefaultAction())
                 && !"allow".equalsIgnoreCase(props.getDefaultAction())) {
             throw new IllegalArgumentException("service-acl.default-action must be deny or allow");
@@ -54,14 +56,9 @@ public class MethodAclAuthorizer {
             throw new IllegalArgumentException("service-acl.identity-source is unsupported: " + identitySource);
         }
 
-        List<AclProperties.Rule> rules = props.getRules();
-        if (rules == null) {
-            throw new IllegalArgumentException("service-acl.rules must not be null");
-        }
-
-        for (AclProperties.Rule rule : rules) {
+        for (AclRuleProperties rule : rules) {
             if (rule.getMethod() == null || rule.getMethod().isBlank()) {
-                throw new IllegalArgumentException("ACL rule method is blank");
+                throw new IllegalArgumentException("ACL rule method is blank: " + rule.getName());
             }
 
             if (rule.getAllowedClients() == null || rule.getAllowedClients().isEmpty()) {

@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @Property(name = "service-acl.enabled", value = "true")
 @Property(name = "service-acl.default-action", value = "deny")
 @Property(name = "service-acl.identity-source", value = "san-uri")
-@Property(name = "service-acl.rules.0.method", value = "uk.sienne.KepsenService/send")
-@Property(name = "service-acl.rules.0.allowed-clients.0", value = "spiffe://internal/ns/default/sa/service-a")
-@Property(name = "service-acl.rules.1.method", value = "uk.sienne.OtherService/*")
-@Property(name = "service-acl.rules.1.allowed-clients.0", value = "spiffe://internal/ns/default/sa/service-b")
+@Property(name = "service-acl.rules.kepsen-send.method", value = "uk.sienne.KepsenService/send")
+@Property(name = "service-acl.rules.kepsen-send.allowed-clients", value = "spiffe://internal/ns/default/sa/service-a")
+@Property(name = "service-acl.rules.other-service.method", value = "uk.sienne.OtherService/*")
+@Property(name = "service-acl.rules.other-service.allowed-clients", value = "spiffe://internal/ns/default/sa/service-b")
 class KepsenMtlsIntegrationTest {
 
     @Inject

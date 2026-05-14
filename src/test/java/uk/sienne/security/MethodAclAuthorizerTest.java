@@ -12,9 +12,9 @@ class MethodAclAuthorizerTest {
 
     @Test
     void allowsExactMethodMatch() {
-        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(properties(List.of(
+        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(properties(), List.of(
                 rule("uk.sienne.KepsenService/send", "spiffe://internal/ns/default/sa/service-a")
-        )));
+        ));
 
         assertTrue(authorizer.isAllowed(
                 "spiffe://internal/ns/default/sa/service-a",
@@ -24,9 +24,9 @@ class MethodAclAuthorizerTest {
 
     @Test
     void allowsServiceWildcardMatch() {
-        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(properties(List.of(
+        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(properties(), List.of(
                 rule("uk.sienne.KepsenService/*", "spiffe://internal/ns/default/sa/service-b")
-        )));
+        ));
 
         assertTrue(authorizer.isAllowed(
                 "spiffe://internal/ns/default/sa/service-b",
@@ -36,9 +36,9 @@ class MethodAclAuthorizerTest {
 
     @Test
     void deniesByDefaultWhenNoRuleMatches() {
-        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(properties(List.of(
+        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(properties(), List.of(
                 rule("uk.sienne.KepsenService/send", "spiffe://internal/ns/default/sa/service-a")
-        )));
+        ));
 
         assertFalse(authorizer.isAllowed(
                 "spiffe://internal/ns/default/sa/service-b",
@@ -48,23 +48,22 @@ class MethodAclAuthorizerTest {
 
     @Test
     void failsFastOnInvalidDefaultAction() {
-        AclProperties props = properties(List.of());
+        AclProperties props = properties();
         props.setDefaultAction("maybe");
 
-        assertThrows(IllegalArgumentException.class, () -> new MethodAclAuthorizer(props));
+        assertThrows(IllegalArgumentException.class, () -> new MethodAclAuthorizer(props, List.of()));
     }
 
-    private AclProperties properties(List<AclProperties.Rule> rules) {
+    private AclProperties properties() {
         AclProperties props = new AclProperties();
         props.setEnabled(true);
         props.setDefaultAction("deny");
         props.setIdentitySource("san-uri");
-        props.setRules(rules);
         return props;
     }
 
-    private AclProperties.Rule rule(String method, String allowedClient) {
-        AclProperties.Rule rule = new AclProperties.Rule();
+    private AclRuleProperties rule(String method, String allowedClient) {
+        AclRuleProperties rule = new AclRuleProperties("test");
         rule.setMethod(method);
         rule.setAllowedClients(List.of(allowedClient));
         return rule;
