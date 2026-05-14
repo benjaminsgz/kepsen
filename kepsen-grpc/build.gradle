@@ -2,6 +2,10 @@ tasks.named("compileJava", JavaCompile) {
     source project(":kepsen-core").sourceSets.main.java
 }
 
+tasks.named("javadoc", Javadoc) {
+    source project(":kepsen-core").sourceSets.main.allJava
+}
+
 tasks.named("jar") {
     exclude "uk/sienne/grpcauth/core/**"
 }
