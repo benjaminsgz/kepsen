@@ -26,6 +26,8 @@ dependencies {
 
     annotationProcessor libs.micronaut.inject.java
 
+    compileOnly libs.grpc.netty
+    compileOnly libs.slf4j.api
     implementation libs.micronaut.context
     implementation libs.micronaut.grpc.runtime
     implementation libs.micronaut.inject
