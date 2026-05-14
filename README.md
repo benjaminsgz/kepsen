@@ -1,90 +1,98 @@
 # Kepsen
 
-[中文](README.zh.md)
+[中文文档](README.zh.md)
 
-A multi-module Java library that adds **mTLS mutual authentication** and **method-level ACL authorization** to gRPC servers, with first-class integrations for Spring Boot and Micronaut.
+Kepsen is a multi-module Java library for adding **mTLS mutual authentication** and **method-level ACL authorization** to gRPC servers. It keeps the security logic framework-agnostic in `kepsen-core`, then provides thin integration layers for **Spring Boot** and **Micronaut**.
 
-## Overview
+## What It Does
 
-```
-kepsen-core                  — framework-agnostic ACL engine and mTLS config model
-kepsen-grpc                  — gRPC ServerInterceptor and Netty TLS configurer
-kepsen-spring-boot-starter   — Spring Boot auto-configuration
-kepsen-micronaut             — Micronaut @Factory and @ConfigurationProperties wiring
-```
+When a gRPC request reaches the server, Kepsen:
 
-When a gRPC call arrives the interceptor:
+1. Requires a valid client certificate over mTLS.
+2. Extracts the client identity from the certificate.
+3. Matches the invoked method against configured ACL rules.
+4. Allows the call through or rejects it with `PERMISSION_DENIED`.
 
-1. Requires a valid mTLS client certificate (rejects with `UNAUTHENTICATED` otherwise).
-2. Extracts the client identity from the certificate (SAN URI, CN, or SAN-URI-then-CN fallback).
-3. Evaluates the ACL rules for the called method and either forwards the call or closes it with `PERMISSION_DENIED`.
-
-## Requirements
-
-- Java 21+
-- Gradle 8+
+This makes it a good fit for internal service-to-service gRPC traffic, especially when identities are carried in SPIFFE-style SAN URIs.
 
 ## Modules
 
+```text
+kepsen-core                  framework-agnostic ACL engine and config model
+kepsen-grpc                  gRPC interceptor and Netty mTLS configurer
+kepsen-spring-boot-starter   Spring Boot auto-configuration
+kepsen-micronaut             Micronaut configuration and bean wiring
+```
+
 ### `kepsen-core`
 
-Framework-agnostic. Contains:
+Pure Java, no framework dependency.
 
-| Class | Purpose |
+| Type | Purpose |
 |---|---|
-| `AclConfig` | Global ACL settings (enabled, default-action, identity-source) |
-| `AclRule` | A named rule binding a method pattern to a set of allowed client identities |
-| `MethodAclAuthorizer` | Evaluates rules; supports exact method, service wildcard (`/MyService/*`), and global wildcard (`*`) |
-| `ClientIdentityExtractor` | Reads SAN URI or CN from an `X509Certificate` |
-| `MtlsConfig` | Paths to cert-chain, private-key, and trust-cert-collection |
+| `AclConfig` | Global ACL settings |
+| `AclRule` | A named rule with method pattern and allowed clients |
+| `MethodAclAuthorizer` | ACL evaluation engine |
+| `ClientIdentityExtractor` | Extracts SAN URI or CN from `X509Certificate` |
+| `MtlsConfig` | mTLS file-path configuration model |
 
 ### `kepsen-grpc`
 
-Depends on `kepsen-core` and `grpc-api`.
+gRPC-specific runtime pieces built on top of `kepsen-core`.
 
-| Class | Purpose |
+| Type | Purpose |
 |---|---|
-| `MtlsAclInterceptor` | `ServerInterceptor` that enforces mTLS presence and ACL rules |
-| `NettyMtlsServerConfigurer` | Configures Netty's SSL context from a `MtlsConfig` |
+| `MtlsAclInterceptor` | Enforces mTLS presence and ACL checks |
+| `NettyMtlsServerConfigurer` | Applies server keypair and trust material to `NettyServerBuilder` |
 
 ### `kepsen-spring-boot-starter`
 
-Auto-configures `MtlsAclInterceptor` and `GrpcServerConfigurer` as Spring beans. Registers the interceptor globally via `@GrpcGlobalServerInterceptor`.
+Spring Boot integration that auto-registers:
+
+- `MtlsAclInterceptor` as a global gRPC server interceptor
+- `GrpcServerConfigurer` for Netty mTLS setup
+- `@ConfigurationProperties` bindings for `service-acl` and `mtls.server`
 
 ### `kepsen-micronaut`
 
-Wires the same components via Micronaut's `@Factory` and `@ConfigurationProperties`.
+Micronaut integration that wires:
+
+- `@ConfigurationProperties("mtls.server")`
+- `@ConfigurationProperties("service-acl")`
+- `@EachProperty("service-acl.rules")`
+- a `BeanCreatedEventListener<ServerBuilder<?>>` for Netty mTLS
+
+## Dependencies
+
+### Spring Boot
+
+```groovy
+dependencies {
+    implementation("uk.sienne:kepsen-spring-boot-starter:<version>")
+    implementation("net.devh:grpc-server-spring-boot-starter:<version>")
+}
+```
+
+### Micronaut
+
+```groovy
+dependencies {
+    implementation("uk.sienne:kepsen-micronaut:<version>")
+    implementation("io.micronaut.grpc:micronaut-grpc-runtime:<version>")
+}
+```
 
 ## Configuration
 
-### Spring Boot (`application.yml`)
+Kepsen uses the same config keys in both Spring Boot and Micronaut:
 
-```yaml
-mtls:
-  server:
-    enabled: true
-    cert-chain: classpath:certs/server.crt
-    private-key: classpath:certs/server.key
-    trust-cert-collection: classpath:certs/ca.crt
+- `mtls.server.*`
+- `service-acl.*`
+- `service-acl.rules.*`
 
-service-acl:
-  enabled: true
-  default-action: deny          # deny | allow
-  identity-source: san-uri      # san-uri | cn | san-uri-then-cn
-  rules:
-    allow-billing:
-      method: "billing.BillingService/Charge"
-      allowed-clients:
-        - "spiffe://example.com/ns/default/sa/payment-svc"
-    allow-all-reporting:
-      method: "reporting.ReportingService/*"
-      allowed-clients:
-        - "spiffe://example.com/ns/default/sa/dashboard"
-```
+That means the same `application.yml` or `application.properties` layout can usually be reused across both frameworks.
 
-### Micronaut (`application.yml`)
-
-Same keys. ACL rules are declared as a list under `service-acl.rules`:
+### Spring Boot `application.yml`
 
 ```yaml
 mtls:
@@ -99,42 +107,146 @@ service-acl:
   default-action: deny
   identity-source: san-uri
   rules:
-    - name: allow-billing
+    billing-charge:
       method: "billing.BillingService/Charge"
       allowed-clients:
         - "spiffe://example.com/ns/default/sa/payment-svc"
+    reporting-all:
+      method: "reporting.ReportingService/*"
+      allowed-clients:
+        - "spiffe://example.com/ns/default/sa/dashboard"
 ```
 
-## Method Pattern Syntax
+### Spring Boot `application.properties`
 
-| Pattern | Matches |
+```properties
+mtls.server.enabled=true
+mtls.server.cert-chain=certs/server.crt
+mtls.server.private-key=certs/server.key
+mtls.server.trust-cert-collection=certs/ca.crt
+
+service-acl.enabled=true
+service-acl.default-action=deny
+service-acl.identity-source=san-uri
+service-acl.rules.billing-charge.method=billing.BillingService/Charge
+service-acl.rules.billing-charge.allowed-clients=spiffe://example.com/ns/default/sa/payment-svc
+service-acl.rules.reporting-all.method=reporting.ReportingService/*
+service-acl.rules.reporting-all.allowed-clients=spiffe://example.com/ns/default/sa/dashboard
+```
+
+### Micronaut `application.yml`
+
+Micronaut uses the same shape:
+
+```yaml
+mtls:
+  server:
+    enabled: true
+    cert-chain: certs/server.crt
+    private-key: certs/server.key
+    trust-cert-collection: certs/ca.crt
+
+service-acl:
+  enabled: true
+  default-action: deny
+  identity-source: san-uri
+  rules:
+    billing-charge:
+      method: "billing.BillingService/Charge"
+      allowed-clients:
+        - "spiffe://example.com/ns/default/sa/payment-svc"
+    reporting-all:
+      method: "reporting.ReportingService/*"
+      allowed-clients:
+        - "spiffe://example.com/ns/default/sa/dashboard"
+```
+
+### Micronaut `application.properties`
+
+```properties
+mtls.server.enabled=true
+mtls.server.cert-chain=certs/server.crt
+mtls.server.private-key=certs/server.key
+mtls.server.trust-cert-collection=certs/ca.crt
+
+service-acl.enabled=true
+service-acl.default-action=deny
+service-acl.identity-source=san-uri
+service-acl.rules.billing-charge.method=billing.BillingService/Charge
+service-acl.rules.billing-charge.allowed-clients=spiffe://example.com/ns/default/sa/payment-svc
+service-acl.rules.reporting-all.method=reporting.ReportingService/*
+service-acl.rules.reporting-all.allowed-clients=spiffe://example.com/ns/default/sa/dashboard
+```
+
+## Certificate Responsibility
+
+Kepsen **does not issue or rotate certificates**.
+
+The application using Kepsen is responsible for providing:
+
+- the server certificate chain
+- the server private key
+- the trusted CA bundle used to verify client certificates
+
+At runtime, Kepsen only reads those file locations and applies them to the gRPC Netty server.
+
+### Development Certificates In This Repository
+
+The files under `certs/dev/` are only development fixtures. They are generated by:
+
+- [certs/dev/generate.sh](certs/dev/generate.sh)
+
+That script creates:
+
+- `ca.crt` / `ca.key`
+- `server.crt` / `server.key`
+- `service-a.crt` / `service-a.key`
+- `service-b.crt` / `service-b.key`
+
+These are useful for local testing and examples, but production certificates should come from your own PKI, CA, or certificate platform.
+
+## ACL Rule Semantics
+
+### Method Patterns
+
+| Pattern | Meaning |
 |---|---|
-| `pkg.ServiceName/MethodName` | Exact method |
-| `pkg.ServiceName/*` | All methods on a service |
-| `*` | Every method on every service |
+| `pkg.Service/Method` | Exact method match |
+| `pkg.Service/*` | All methods on one service |
+| `*` | All methods on all services |
 
-Rules are evaluated in declaration order. The first matching rule wins. If no rule matches, `default-action` applies.
+### Identity Sources
 
-## Identity Sources
-
-| Value | Description |
+| Value | Meaning |
 |---|---|
-| `san-uri` | First URI SAN from the client certificate (e.g. SPIFFE ID) |
-| `cn` | Common Name from the Subject DN |
-| `san-uri-then-cn` | SAN URI if present, CN as fallback |
+| `san-uri` | First URI SAN from the client certificate |
+| `cn` | Common Name from the subject DN |
+| `san-uri-then-cn` | Prefer SAN URI, fall back to CN |
 
-## Building
+### Default Action
+
+- `deny`: reject calls when no rule matches
+- `allow`: allow calls when no rule matches
+
+## Native Image Notes
+
+Kepsen includes native-image metadata for:
+
+- `kepsen-core`
+- `kepsen-grpc`
+
+The intent is to stay friendly to AOT and GraalVM Native Image use cases by keeping reflection minimal and pushing framework logic into thin adapter layers.
+
+## Build
 
 ```bash
-./gradlew build
+./gradlew :kepsen-core:test
+./gradlew publishToMavenLocal
+./gradlew :kepsen-core:dependencies --configuration runtimeClasspath
 ```
 
-Run tests only:
-
-```bash
-./gradlew test
-```
+The last command should show that `kepsen-core` has no runtime framework dependencies.
 
 ## License
 
-Apache 2.0
+Apache License 2.0. See [LICENSE](LICENSE).

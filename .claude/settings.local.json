@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(Get-ChildItem c:\\\\Users\\\\gaoso\\\\Documents\\\\compw\\\\kepsen -Depth 2)",
-      "Bash(Select-Object FullName, PSIsContainer)"
-    ]
-  }
-}
