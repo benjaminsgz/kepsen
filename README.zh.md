@@ -1,5 +1,12 @@
 # Kepsen
 
+[![Java](https://img.shields.io/badge/Java-21-ff6f00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Gradle](https://img.shields.io/badge/Gradle-8+-02303A?logo=gradle&logoColor=white)](https://gradle.org/)
+[![gRPC](https://img.shields.io/badge/gRPC-Java-244c5a?logo=grpc&logoColor=white)](https://grpc.io/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-Starter-6db33f?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Micronaut](https://img.shields.io/badge/Micronaut-Adapter-1b1f23?logo=micronaut&logoColor=white)](https://micronaut.io/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 [English](README.md)
 
 Kepsen 是一个多模块 Java 库，用来为 gRPC 服务端增加 **mTLS 双向认证** 和 **方法级 ACL 授权**。它把核心安全逻辑沉淀在 `kepsen-core`，再分别提供 **Spring Boot** 和 **Micronaut** 的薄适配层。
@@ -24,7 +31,7 @@ kepsen-spring-boot-starter   Spring Boot 自动装配
 kepsen-micronaut             Micronaut 配置绑定与 Bean 装配
 ```
 
-### `kepsen-core`
+### 🛡️ `kepsen-core`
 
 纯 Java 模块，不依赖具体框架。
 
@@ -36,7 +43,7 @@ kepsen-micronaut             Micronaut 配置绑定与 Bean 装配
 | `ClientIdentityExtractor` | 从 `X509Certificate` 中提取 SAN URI 或 CN |
 | `MtlsConfig` | mTLS 文件路径配置模型 |
 
-### `kepsen-grpc`
+### 🔒 `kepsen-grpc`
 
 基于 `kepsen-core` 的 gRPC 运行时实现。
 
@@ -45,7 +52,7 @@ kepsen-micronaut             Micronaut 配置绑定与 Bean 装配
 | `MtlsAclInterceptor` | 校验 mTLS 和 ACL 的 gRPC `ServerInterceptor` |
 | `NettyMtlsServerConfigurer` | 把服务端证书和信任根配置到 `NettyServerBuilder` |
 
-### `kepsen-spring-boot-starter`
+### 🍃 `kepsen-spring-boot-starter`
 
 Spring Boot 适配层，自动注册：
 
@@ -53,7 +60,7 @@ Spring Boot 适配层，自动注册：
 - Netty mTLS 配置器 `GrpcServerConfigurer`
 - `service-acl` 和 `mtls.server` 的 `@ConfigurationProperties`
 
-### `kepsen-micronaut`
+### ⚡ `kepsen-micronaut`
 
 Micronaut 适配层，负责装配：
 
@@ -246,6 +253,35 @@ Kepsen 已经为以下模块补充了 native-image 元数据：
 ```
 
 最后一个命令应显示 `kepsen-core` 没有运行时框架依赖。
+
+## GitHub Packages 发布
+
+现在在推送到 `main` 分支时，GitHub Actions 会自动把所有模块发布到 GitHub Packages Maven 仓库。
+
+发布坐标：
+
+- `uk.sienne:kepsen-core`
+- `uk.sienne:kepsen-grpc`
+- `uk.sienne:kepsen-micronaut`
+- `uk.sienne:kepsen-spring-boot-starter`
+
+工作流使用以下环境变量：
+
+- `GITHUB_ACTOR`
+- `GITHUB_TOKEN`
+- `GITHUB_REPOSITORY`
+
+并执行：
+
+```bash
+./gradlew publish
+```
+
+如果需要发布到其他 GitHub Packages 地址，可以额外设置：
+
+```bash
+GITHUB_PACKAGES_URL=https://maven.pkg.github.com/<owner>/<repo>
+```
 
 ## 许可证
 

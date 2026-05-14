@@ -1,5 +1,12 @@
 # Kepsen
 
+[![Java](https://img.shields.io/badge/Java-21-ff6f00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Gradle](https://img.shields.io/badge/Gradle-8+-02303A?logo=gradle&logoColor=white)](https://gradle.org/)
+[![gRPC](https://img.shields.io/badge/gRPC-Java-244c5a?logo=grpc&logoColor=white)](https://grpc.io/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-Starter-6db33f?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Micronaut](https://img.shields.io/badge/Micronaut-Adapter-1b1f23?logo=micronaut&logoColor=white)](https://micronaut.io/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 [中文文档](README.zh.md)
 
 Kepsen is a multi-module Java library for adding **mTLS mutual authentication** and **method-level ACL authorization** to gRPC servers. It keeps the security logic framework-agnostic in `kepsen-core`, then provides thin integration layers for **Spring Boot** and **Micronaut**.
@@ -24,7 +31,7 @@ kepsen-spring-boot-starter   Spring Boot auto-configuration
 kepsen-micronaut             Micronaut configuration and bean wiring
 ```
 
-### `kepsen-core`
+### 🛡️ `kepsen-core`
 
 Pure Java, no framework dependency.
 
@@ -36,7 +43,7 @@ Pure Java, no framework dependency.
 | `ClientIdentityExtractor` | Extracts SAN URI or CN from `X509Certificate` |
 | `MtlsConfig` | mTLS file-path configuration model |
 
-### `kepsen-grpc`
+### 🔒 `kepsen-grpc`
 
 gRPC-specific runtime pieces built on top of `kepsen-core`.
 
@@ -45,7 +52,7 @@ gRPC-specific runtime pieces built on top of `kepsen-core`.
 | `MtlsAclInterceptor` | Enforces mTLS presence and ACL checks |
 | `NettyMtlsServerConfigurer` | Applies server keypair and trust material to `NettyServerBuilder` |
 
-### `kepsen-spring-boot-starter`
+### 🍃 `kepsen-spring-boot-starter`
 
 Spring Boot integration that auto-registers:
 
@@ -53,7 +60,7 @@ Spring Boot integration that auto-registers:
 - `GrpcServerConfigurer` for Netty mTLS setup
 - `@ConfigurationProperties` bindings for `service-acl` and `mtls.server`
 
-### `kepsen-micronaut`
+### ⚡ `kepsen-micronaut`
 
 Micronaut integration that wires:
 
@@ -246,6 +253,35 @@ The intent is to stay friendly to AOT and GraalVM Native Image use cases by keep
 ```
 
 The last command should show that `kepsen-core` has no runtime framework dependencies.
+
+## GitHub Packages
+
+On pushes to `main`, GitHub Actions now publishes all modules to GitHub Packages Maven registry.
+
+Published modules:
+
+- `uk.sienne:kepsen-core`
+- `uk.sienne:kepsen-grpc`
+- `uk.sienne:kepsen-micronaut`
+- `uk.sienne:kepsen-spring-boot-starter`
+
+The workflow uses:
+
+- `GITHUB_ACTOR`
+- `GITHUB_TOKEN`
+- `GITHUB_REPOSITORY`
+
+and runs:
+
+```bash
+./gradlew publish
+```
+
+If you need to publish to a different GitHub Packages endpoint, set:
+
+```bash
+GITHUB_PACKAGES_URL=https://maven.pkg.github.com/<owner>/<repo>
+```
 
 ## License
 
