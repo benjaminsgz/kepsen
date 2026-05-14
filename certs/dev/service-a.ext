@@ -1,0 +1,3 @@
+subjectAltName=URI:spiffe://internal/ns/default/sa/service-a
+extendedKeyUsage=clientAuth
+keyUsage=digitalSignature
