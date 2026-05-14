@@ -59,7 +59,10 @@ public class GrpcMtlsServerCustomizer implements BeanCreatedEventListener<Server
         }
 
         if (location.startsWith("file:")) {
-            return new File(URI.create(location));
+            if (location.startsWith("file:/")) {
+                return new File(URI.create(location));
+            }
+            return new File(location.substring("file:".length()));
         }
 
         return new File(location);
