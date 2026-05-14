@@ -1,0 +1,57 @@
+{
+  "groups": [
+    {
+      "name": "mtls.server",
+      "type": "uk.sienne.grpcauth.spring.MtlsConfigProperties",
+      "sourceType": "uk.sienne.grpcauth.spring.MtlsConfigProperties"
+    },
+    {
+      "name": "service-acl",
+      "type": "uk.sienne.grpcauth.spring.AclConfigProperties",
+      "sourceType": "uk.sienne.grpcauth.spring.AclConfigProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "mtls.server.cert-chain",
+      "type": "java.lang.String",
+      "sourceType": "uk.sienne.grpcauth.spring.MtlsConfigProperties"
+    },
+    {
+      "name": "mtls.server.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "uk.sienne.grpcauth.spring.MtlsConfigProperties"
+    },
+    {
+      "name": "mtls.server.private-key",
+      "type": "java.lang.String",
+      "sourceType": "uk.sienne.grpcauth.spring.MtlsConfigProperties"
+    },
+    {
+      "name": "mtls.server.trust-cert-collection",
+      "type": "java.lang.String",
+      "sourceType": "uk.sienne.grpcauth.spring.MtlsConfigProperties"
+    },
+    {
+      "name": "service-acl.default-action",
+      "type": "java.lang.String",
+      "sourceType": "uk.sienne.grpcauth.spring.AclConfigProperties"
+    },
+    {
+      "name": "service-acl.enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "uk.sienne.grpcauth.spring.AclConfigProperties"
+    },
+    {
+      "name": "service-acl.identity-source",
+      "type": "java.lang.String",
+      "sourceType": "uk.sienne.grpcauth.spring.AclConfigProperties"
+    },
+    {
+      "name": "service-acl.rules",
+      "type": "java.util.Map<java.lang.String,uk.sienne.grpcauth.spring.AclConfigProperties$RuleEntry>",
+      "sourceType": "uk.sienne.grpcauth.spring.AclConfigProperties"
+    }
+  ],
+  "hints": []
+}

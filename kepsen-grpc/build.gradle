@@ -1,3 +1,11 @@
+tasks.named("compileJava", JavaCompile) {
+    source project(":kepsen-core").sourceSets.main.java
+}
+
+tasks.named("jar") {
+    exclude "uk/sienne/grpcauth/core/**"
+}
+
 dependencies {
     api project(":kepsen-core")
     api libs.grpc.api

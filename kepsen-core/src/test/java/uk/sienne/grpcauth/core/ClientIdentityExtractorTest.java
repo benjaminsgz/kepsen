@@ -1,6 +1,7 @@
 package uk.sienne.grpcauth.core;
 
 import org.junit.jupiter.api.Test;
+import uk.sienne.grpcauth.core.ClientIdentityExtractor;
 
 import javax.security.auth.x500.X500Principal;
 import java.math.BigInteger;

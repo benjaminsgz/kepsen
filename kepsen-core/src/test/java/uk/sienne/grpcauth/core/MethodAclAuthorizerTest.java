@@ -1,6 +1,9 @@
 package uk.sienne.grpcauth.core;
 
 import org.junit.jupiter.api.Test;
+import uk.sienne.grpcauth.core.AclConfig;
+import uk.sienne.grpcauth.core.AclRule;
+import uk.sienne.grpcauth.core.MethodAclAuthorizer;
 
 import java.util.List;
 

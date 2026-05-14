@@ -6,6 +6,16 @@ micronaut {
     version libs.versions.micronaut.get()
 }
 
+tasks.named("compileJava", JavaCompile) {
+    source project(":kepsen-grpc").sourceSets.main.java
+    source project(":kepsen-core").sourceSets.main.java
+}
+
+tasks.named("jar") {
+    exclude "uk/sienne/grpcauth/core/**"
+    exclude "uk/sienne/grpcauth/grpc/**"
+}
+
 dependencies {
     api project(":kepsen-grpc")
 
