@@ -16,4 +16,7 @@ dependencies {
 
     implementation libs.grpc.netty
     implementation libs.slf4j.api
+
+    testImplementation libs.junit.api
+    testRuntimeOnly libs.junit.engine
 }

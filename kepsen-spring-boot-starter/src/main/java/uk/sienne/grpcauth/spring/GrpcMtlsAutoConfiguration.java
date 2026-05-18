@@ -33,10 +33,11 @@ public class GrpcMtlsAutoConfiguration {
     @GrpcGlobalServerInterceptor
     MtlsAclInterceptor mtlsAclInterceptor(
             AclConfig aclConfig,
+            MtlsConfigProperties mtlsProperties,
             MethodAclAuthorizer authorizer,
             ClientIdentityExtractor identityExtractor
     ) {
-        return new MtlsAclInterceptor(aclConfig, authorizer, identityExtractor);
+        return new MtlsAclInterceptor(aclConfig, authorizer, identityExtractor, mtlsProperties.isEnabled());
     }
 
     @Bean

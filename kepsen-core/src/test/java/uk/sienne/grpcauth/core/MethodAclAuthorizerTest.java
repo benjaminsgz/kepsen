@@ -50,6 +50,49 @@ class MethodAclAuthorizerTest {
     }
 
     @Test
+    void deniesMatchedRuleEvenWhenDefaultActionAllows() {
+        AclConfig config = properties();
+        config.setDefaultAction("allow");
+
+        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(config, List.of(
+                rule("uk.sienne.KepsenService/send", "spiffe://internal/ns/default/sa/service-a")
+        ));
+
+        assertFalse(authorizer.isAllowed(
+                "spiffe://internal/ns/default/sa/service-b",
+                "uk.sienne.KepsenService/send"
+        ));
+    }
+
+    @Test
+    void allowsByDefaultOnlyWhenNoRuleMatches() {
+        AclConfig config = properties();
+        config.setDefaultAction("allow");
+
+        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(config, List.of(
+                rule("uk.sienne.KepsenService/send", "spiffe://internal/ns/default/sa/service-a")
+        ));
+
+        assertTrue(authorizer.isAllowed(
+                "spiffe://internal/ns/default/sa/service-b",
+                "uk.sienne.OtherService/send"
+        ));
+    }
+
+    @Test
+    void unionsMultipleMatchingRuleScopes() {
+        MethodAclAuthorizer authorizer = new MethodAclAuthorizer(properties(), List.of(
+                rule("uk.sienne.KepsenService/send", "spiffe://internal/ns/default/sa/service-a"),
+                rule("uk.sienne.KepsenService/*", "spiffe://internal/ns/default/sa/service-b")
+        ));
+
+        assertTrue(authorizer.isAllowed(
+                "spiffe://internal/ns/default/sa/service-b",
+                "uk.sienne.KepsenService/send"
+        ));
+    }
+
+    @Test
     void failsFastOnInvalidDefaultAction() {
         AclConfig config = properties();
         config.setDefaultAction("maybe");

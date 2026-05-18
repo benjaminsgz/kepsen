@@ -31,9 +31,15 @@ public class MtlsAclInterceptorFactory {
     @Singleton
     MtlsAclInterceptor mtlsAclInterceptor(
             MicronautAclProperties properties,
+            MicronautMtlsProperties mtlsProperties,
             MethodAclAuthorizer authorizer,
             ClientIdentityExtractor identityExtractor
     ) {
-        return new MtlsAclInterceptor(properties.toAclConfig(), authorizer, identityExtractor);
+        return new MtlsAclInterceptor(
+                properties.toAclConfig(),
+                authorizer,
+                identityExtractor,
+                mtlsProperties.isEnabled()
+        );
     }
 }

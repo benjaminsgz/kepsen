@@ -6,18 +6,35 @@ import uk.sienne.grpcauth.core.constants.ConfigKeys;
 import uk.sienne.grpcauth.core.constants.IdentitySource;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MethodAclAuthorizer {
 
     private final AclConfig config;
-    private final List<AclRule> rules;
+    private final Map<String, Set<String>> exactMethodClients;
+    private final Map<String, Set<String>> serviceClients;
+    private final Set<String> globalClients;
 
     public MethodAclAuthorizer(AclConfig config, List<AclRule> rules) {
         this.config = config;
-        this.rules = List.copyOf(rules);
-        validate(config, this.rules);
+        List<AclRule> ruleCopy = List.copyOf(rules);
+        validate(config, ruleCopy);
+
+        Map<String, Set<String>> exact = new LinkedHashMap<>();
+        Map<String, Set<String>> service = new LinkedHashMap<>();
+        Set<String> global = new HashSet<>();
+
+        for (AclRule rule : ruleCopy) {
+            Set<String> target = targetSet(rule.getMethod(), exact, service, global);
+            target.addAll(rule.getAllowedClients());
+        }
+
+        this.exactMethodClients = freeze(exact);
+        this.serviceClients = freeze(service);
+        this.globalClients = Set.copyOf(global);
     }
 
     public boolean isAllowed(String clientIdentity, String fullMethodName) {
@@ -25,24 +42,39 @@ public class MethodAclAuthorizer {
             return true;
         }
 
-        String serviceName = fullMethodName.split("/", 2)[0];
+        int slash = fullMethodName.indexOf('/');
+        String serviceName = slash < 0 ? fullMethodName : fullMethodName.substring(0, slash);
 
-        for (AclRule rule : rules) {
-            if (matches(rule.getMethod(), fullMethodName, serviceName)) {
-                Set<String> allowedClients = new HashSet<>(rule.getAllowedClients());
-                if (allowedClients.contains(clientIdentity)) {
-                    return true;
-                }
+        boolean matchedRule = false;
+
+        Set<String> exactClients = exactMethodClients.get(fullMethodName);
+        if (exactClients != null) {
+            matchedRule = true;
+            if (exactClients.contains(clientIdentity)) {
+                return true;
             }
         }
 
-        return AclAction.ALLOW.equalsIgnoreCase(config.getDefaultAction());
-    }
+        Set<String> serviceAllowedClients = serviceClients.get(serviceName);
+        if (serviceAllowedClients != null) {
+            matchedRule = true;
+            if (serviceAllowedClients.contains(clientIdentity)) {
+                return true;
+            }
+        }
 
-    private boolean matches(String pattern, String fullMethodName, String serviceName) {
-        return pattern.equals(fullMethodName)
-                || pattern.equals(serviceName + AclPattern.WILDCARD_SERVICE)
-                || pattern.equals(AclPattern.WILDCARD_ALL);
+        if (!globalClients.isEmpty()) {
+            matchedRule = true;
+            if (globalClients.contains(clientIdentity)) {
+                return true;
+            }
+        }
+
+        if (matchedRule) {
+            return false;
+        }
+
+        return AclAction.ALLOW.equalsIgnoreCase(config.getDefaultAction());
     }
 
     private void validate(AclConfig config, List<AclRule> rules) {
@@ -69,5 +101,31 @@ public class MethodAclAuthorizer {
                 throw new IllegalArgumentException("ACL rule allowed-clients is empty: " + rule.getMethod());
             }
         }
+    }
+
+    private Set<String> targetSet(
+            String method,
+            Map<String, Set<String>> exact,
+            Map<String, Set<String>> service,
+            Set<String> global
+    ) {
+        if (AclPattern.WILDCARD_ALL.equals(method)) {
+            return global;
+        }
+
+        if (method.endsWith(AclPattern.WILDCARD_SERVICE)) {
+            String serviceName = method.substring(0, method.length() - AclPattern.WILDCARD_SERVICE.length());
+            return service.computeIfAbsent(serviceName, ignored -> new HashSet<>());
+        }
+
+        return exact.computeIfAbsent(method, ignored -> new HashSet<>());
+    }
+
+    private Map<String, Set<String>> freeze(Map<String, Set<String>> source) {
+        Map<String, Set<String>> frozen = new LinkedHashMap<>(source.size());
+        for (Map.Entry<String, Set<String>> entry : source.entrySet()) {
+            frozen.put(entry.getKey(), Set.copyOf(entry.getValue()));
+        }
+        return Map.copyOf(frozen);
     }
 }

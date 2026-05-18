@@ -28,15 +28,26 @@ public class MtlsAclInterceptor implements ServerInterceptor {
     private final AclConfig aclConfig;
     private final MethodAclAuthorizer authorizer;
     private final ClientIdentityExtractor identityExtractor;
+    private final boolean mtlsRequired;
 
     public MtlsAclInterceptor(
             AclConfig aclConfig,
             MethodAclAuthorizer authorizer,
             ClientIdentityExtractor identityExtractor
     ) {
+        this(aclConfig, authorizer, identityExtractor, true);
+    }
+
+    public MtlsAclInterceptor(
+            AclConfig aclConfig,
+            MethodAclAuthorizer authorizer,
+            ClientIdentityExtractor identityExtractor,
+            boolean mtlsRequired
+    ) {
         this.aclConfig = aclConfig;
         this.authorizer = authorizer;
         this.identityExtractor = identityExtractor;
+        this.mtlsRequired = mtlsRequired;
     }
 
     @Override
@@ -46,6 +57,10 @@ public class MtlsAclInterceptor implements ServerInterceptor {
             ServerCallHandler<ReqT, RespT> next
     ) {
         String fullMethodName = call.getMethodDescriptor().getFullMethodName();
+
+        if (!mtlsRequired) {
+            return next.startCall(call, headers);
+        }
 
         SSLSession sslSession = call.getAttributes().get(Grpc.TRANSPORT_ATTR_SSL_SESSION);
         if (sslSession == null) {
@@ -86,11 +101,13 @@ public class MtlsAclInterceptor implements ServerInterceptor {
             };
         }
 
-        LOG.debug(
-                "decision=allow reason=acl_match method={} client_hash={}",
-                fullMethodName,
-                hashIdentity(clientIdentity)
-        );
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(
+                    "decision=allow reason=acl_match method={} client_hash={}",
+                    fullMethodName,
+                    hashIdentity(clientIdentity)
+            );
+        }
         return next.startCall(call, headers);
     }
 
