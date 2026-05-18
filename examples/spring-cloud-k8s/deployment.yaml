@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-grpc
+  namespace: prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: billing-grpc
+  template:
+    metadata:
+      labels:
+        app: billing-grpc
+    spec:
+      containers:
+        - name: app
+          image: registry.example.com/billing-grpc:1.0.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--spring.config.location=file:/etc/kepsen/config/application.yml"
+          ports:
+            - name: grpc
+              containerPort: 9090
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              memory: "1Gi"
+          volumeMounts:
+            - name: mtls
+              mountPath: /etc/kepsen/tls
+              readOnly: true
+            - name: config
+              mountPath: /etc/kepsen/config
+              readOnly: true
+      volumes:
+        - name: mtls
+          secret:
+            secretName: billing-grpc-mtls
+            defaultMode: 0400
+        - name: config
+          configMap:
+            name: billing-grpc-config

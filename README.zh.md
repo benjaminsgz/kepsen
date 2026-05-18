@@ -244,6 +244,27 @@ Kepsen 已经为以下模块补充了 native-image 元数据：
 
 整体设计目标是尽量减少反射需求，并把框架相关逻辑限制在很薄的适配层中，以便更好地支持 AOT 和 GraalVM Native Image。
 
+## Kubernetes 示例
+
+Spring Cloud Kubernetes 部署示例位于：
+
+- [examples/spring-cloud-k8s](examples/spring-cloud-k8s)
+
+示例把 TLS 证书和私钥从 Kubernetes `Secret` 挂载成文件，把 Spring/Kepsen 配置从 `ConfigMap` 挂载成 `application.yml`。证书或 ACL 变更后需要滚动重启 Pod，因为 Kepsen 会在启动期构建 Netty TLS context 和 ACL 索引。
+
+## 和 Istio / Linkerd / SPIRE / Spring Security 怎么选
+
+Kepsen 的定位是：不引入完整 service mesh，也能在 Java gRPC 服务内部做 mTLS 和方法级 allowlist。
+
+| 方案 | 适合场景 | 代价 |
+|---|---|---|
+| Kepsen | Java gRPC 服务需要轻量级进程内 mTLS + 方法 allowlist。 | 每个服务需要配置证书和 ACL；当前证书轮换需要重启 Pod。 |
+| Istio / Linkerd / Consul Connect | 需要 mesh 级身份、mTLS、策略、遥测、重试和流量治理。 | sidecar/control plane 会增加 CPU、内存、延迟和运维复杂度。 |
+| SPIFFE / SPIRE | 需要 workload identity、SVID 和 trust bundle 自动轮换。 | 解决身份分发，不直接解决方法级 ACL；Kepsen 可以消费 SPIFFE 风格 SAN URI。 |
+| Spring Security / Spring gRPC security | 已经重度使用 Spring Security，需要角色、注解、OAuth2/JWT 或表达式授权。 | 框架耦合更强，请求路径抽象层更多，不如直接 method allowlist 确定。 |
+
+不要把 Kepsen 放在已经由网关或 sidecar 终止客户端 TLS 的后端路径上。那种拓扑下，应用看到的 gRPC `SSLSession` 不再包含原始客户端证书。
+
 ## 构建与验证
 
 ```bash
@@ -256,7 +277,7 @@ Kepsen 已经为以下模块补充了 native-image 元数据：
 
 ## GitHub Packages 发布
 
-现在在推送到 `main` 分支时，GitHub Actions 会自动把所有模块发布到 GitHub Packages Maven 仓库。
+推送版本 tag 时，GitHub Actions 会自动把所有模块发布到 GitHub Packages Maven 仓库。例如推送 `v0.1.0`，发布版本就是 `0.1.0`。
 
 发布坐标：
 
@@ -274,7 +295,7 @@ Kepsen 已经为以下模块补充了 native-image 元数据：
 并执行：
 
 ```bash
-./gradlew publish
+./gradlew publish -PreleaseVersion=<version>
 ```
 
 如果需要发布到其他 GitHub Packages 地址，可以额外设置：

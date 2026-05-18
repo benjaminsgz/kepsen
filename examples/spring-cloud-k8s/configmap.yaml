@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: billing-grpc-config
+  namespace: prod
+data:
+  application.yml: |
+    spring:
+      application:
+        name: billing-grpc
+
+    grpc:
+      server:
+        port: 9090
+
+    mtls:
+      server:
+        enabled: true
+        cert-chain: /etc/kepsen/tls/server.crt
+        private-key: /etc/kepsen/tls/server.key
+        trust-cert-collection: /etc/kepsen/tls/ca.crt
+
+    service-acl:
+      enabled: true
+      default-action: deny
+      identity-source: san-uri
+      rules:
+        charge:
+          method: "billing.BillingService/Charge"
+          allowed-clients:
+            - "spiffe://prod/ns/payments/sa/payment-api"
+        billing-read:
+          method: "billing.BillingService/*"
+          allowed-clients:
+            - "spiffe://prod/ns/ops/sa/reporting-api"

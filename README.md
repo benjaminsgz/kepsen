@@ -244,6 +244,27 @@ Kepsen includes native-image metadata for:
 
 The intent is to stay friendly to AOT and GraalVM Native Image use cases by keeping reflection minimal and pushing framework logic into thin adapter layers.
 
+## Kubernetes Example
+
+Spring Cloud Kubernetes deployment manifests are available under:
+
+- [examples/spring-cloud-k8s](examples/spring-cloud-k8s)
+
+The example mounts TLS material from a Kubernetes `Secret` and loads Spring/Kepsen configuration from a `ConfigMap`. Certificates and ACL changes require a pod rollout because Kepsen builds the Netty TLS context and ACL index at startup.
+
+## Choosing Kepsen vs Alternatives
+
+Kepsen is for teams that want application-level gRPC mTLS and method ACLs without adopting a full service mesh.
+
+| Option | Use when | Cost |
+|---|---|---|
+| Kepsen | You run Java gRPC services and want a small in-process mTLS + method allowlist. | Each service must configure certificates and ACL rules. Certificate rotation needs rollout today. |
+| Istio / Linkerd / Consul Connect | You want mesh-wide identity, mTLS, policy, telemetry, retries, and traffic controls. | Adds proxy/control-plane CPU, memory, latency, and operational complexity. |
+| SPIFFE / SPIRE | You need workload identity and automatic SVID/trust bundle rotation. | Solves identity distribution, not method-level ACL by itself. Kepsen can consume SPIFFE-style SAN URIs. |
+| Spring Security / Spring gRPC security | You already use Spring Security and want roles, annotations, OAuth2/JWT, or expression-based authorization. | More framework coupling and more request-path abstraction than a direct method allowlist. |
+
+Do not use Kepsen behind a proxy that terminates client TLS before the request reaches the application. In that topology the gRPC `SSLSession` no longer carries the original client certificate.
+
 ## Build
 
 ```bash
@@ -256,7 +277,7 @@ The last command should show that `kepsen-core` has no runtime framework depende
 
 ## GitHub Packages
 
-On pushes to `main`, GitHub Actions now publishes all modules to GitHub Packages Maven registry.
+Tagged releases publish all modules to GitHub Packages Maven registry. Push a tag like `v0.1.0`; the release workflow strips the leading `v` and publishes version `0.1.0`.
 
 Published modules:
 
@@ -274,7 +295,7 @@ The workflow uses:
 and runs:
 
 ```bash
-./gradlew publish
+./gradlew publish -PreleaseVersion=<version>
 ```
 
 If you need to publish to a different GitHub Packages endpoint, set:
