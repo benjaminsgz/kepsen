@@ -31,7 +31,7 @@ kepsen-spring-boot-starter   Spring Boot auto-configuration
 kepsen-micronaut             Micronaut configuration and bean wiring
 ```
 
-### 🛡️ `kepsen-core`
+### `kepsen-core`
 
 Pure Java, no framework dependency.
 
@@ -43,7 +43,7 @@ Pure Java, no framework dependency.
 | `ClientIdentityExtractor` | Extracts SAN URI or CN from `X509Certificate` |
 | `MtlsConfig` | mTLS file-path configuration model |
 
-### 🔒 `kepsen-grpc`
+### `kepsen-grpc`
 
 gRPC-specific runtime pieces built on top of `kepsen-core`.
 
@@ -52,7 +52,7 @@ gRPC-specific runtime pieces built on top of `kepsen-core`.
 | `MtlsAclInterceptor` | Enforces mTLS presence and ACL checks |
 | `NettyMtlsServerConfigurer` | Applies server keypair and trust material to `NettyServerBuilder` |
 
-### 🍃 `kepsen-spring-boot-starter`
+### `kepsen-spring-boot-starter`
 
 Spring Boot integration that auto-registers:
 
@@ -60,7 +60,7 @@ Spring Boot integration that auto-registers:
 - `GrpcServerConfigurer` for Netty mTLS setup
 - `@ConfigurationProperties` bindings for `service-acl` and `mtls.server`
 
-### ⚡ `kepsen-micronaut`
+### `kepsen-micronaut`
 
 Micronaut integration that wires:
 
@@ -274,35 +274,6 @@ Do not use Kepsen behind a proxy that terminates client TLS before the request r
 ```
 
 The last command should show that `kepsen-core` has no runtime framework dependencies.
-
-## GitHub Packages
-
-Tagged releases publish all modules to GitHub Packages Maven registry. Push a tag like `v0.1.0`; the release workflow strips the leading `v` and publishes version `0.1.0`.
-
-Published modules:
-
-- `uk.sienne:kepsen-core`
-- `uk.sienne:kepsen-grpc`
-- `uk.sienne:kepsen-micronaut`
-- `uk.sienne:kepsen-spring-boot-starter`
-
-The workflow uses:
-
-- `GITHUB_ACTOR`
-- `GITHUB_TOKEN`
-- `GITHUB_REPOSITORY`
-
-and runs:
-
-```bash
-./gradlew publish -PreleaseVersion=<version>
-```
-
-If you need to publish to a different GitHub Packages endpoint, set:
-
-```bash
-GITHUB_PACKAGES_URL=https://maven.pkg.github.com/<owner>/<repo>
-```
 
 ## License
 

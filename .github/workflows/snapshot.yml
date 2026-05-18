@@ -1,9 +1,14 @@
-name: Release
+name: Snapshot
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Snapshot version to publish"
+        required: false
+        default: "0.1.0-SNAPSHOT"
 
 permissions:
   contents: read
@@ -11,7 +16,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish GitHub Packages
+    name: Publish Snapshot
     runs-on: ubuntu-latest
 
     steps:
@@ -30,15 +35,20 @@ jobs:
       - name: Make Gradle Wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Derive release version
-        run: echo "RELEASE_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Derive snapshot version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "SNAPSHOT_VERSION=${{ inputs.version }}" >> "$GITHUB_ENV"
+          else
+            echo "SNAPSHOT_VERSION=0.1.0-SNAPSHOT" >> "$GITHUB_ENV"
+          fi
 
       - name: Build
         run: ./gradlew clean build --no-daemon
 
-      - name: Publish to GitHub Packages
+      - name: Publish snapshot to GitHub Packages
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: ./gradlew publish --no-daemon -PreleaseVersion="${RELEASE_VERSION}"
+        run: ./gradlew publish --no-daemon -PsnapshotVersion="${SNAPSHOT_VERSION}"

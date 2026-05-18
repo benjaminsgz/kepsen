@@ -6,9 +6,11 @@ subprojects {
     apply plugin: "java-library"
     apply plugin: "maven-publish"
 
+    def publishVersion = providers.gradleProperty("snapshotVersion")
+            .orElse(providers.environmentVariable("SNAPSHOT_VERSION"))
+
     group   = "uk.sienne"
-    version = providers.gradleProperty("releaseVersion")
-            .orElse(providers.environmentVariable("RELEASE_VERSION"))
+    version = publishVersion
             .orElse("0.1.0-SNAPSHOT")
             .get()
 
@@ -46,6 +48,19 @@ subprojects {
                 credentials {
                     username = System.getenv("GITHUB_ACTOR")
                     password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
+
+    tasks.withType(PublishToMavenRepository).configureEach {
+        if (repository.name == "GitHubPackages") {
+            doFirst {
+                if (!publishVersion.present) {
+                    throw new GradleException(
+                            "Publishing to GitHub Packages requires -PsnapshotVersion=<version> " +
+                                    "or SNAPSHOT_VERSION."
+                    )
                 }
             }
         }
