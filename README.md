@@ -7,7 +7,7 @@
 [![Micronaut](https://img.shields.io/badge/Micronaut-Adapter-1b1f23?logo=micronaut&logoColor=white)](https://micronaut.io/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-[中文文档](README.zh.md)
+[中文文档](README.zh.md) | [Architecture Guide (Chinese)](docs/ARCHITECTURE.zh.md) | [Developer Wiki (Chinese)](docs/WIKI.zh.md)
 
 Kepsen is a multi-module Java library for adding **mTLS mutual authentication** and **method-level ACL authorization** to gRPC servers. It keeps the security logic framework-agnostic in `kepsen-core`, then provides thin integration layers for **Spring Boot** and **Micronaut**.
 

@@ -7,7 +7,7 @@
 [![Micronaut](https://img.shields.io/badge/Micronaut-Adapter-1b1f23?logo=micronaut&logoColor=white)](https://micronaut.io/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-[English](README.md)
+[English](README.md) | [系统架构设计与概览](docs/ARCHITECTURE.zh.md) | [开发者与架构师 Wiki 目录](docs/WIKI.zh.md)
 
 Kepsen 是一个多模块 Java 库，用来为 gRPC 服务端增加 **mTLS 双向认证** 和 **方法级 ACL 授权**。它把核心安全逻辑沉淀在 `kepsen-core`，再分别提供 **Spring Boot** 和 **Micronaut** 的薄适配层。
 
