@@ -87,7 +87,7 @@ graph TD
     end
 
     ClientSvc -->|mTLS 请求 + SPIFFE SAN 证书| Netty
-    APIGateway -->|边缘流量 (通常不带 mTLS 证书)| Netty
+    APIGateway -->|"边缘流量 (通常不带 mTLS 证书)"| Netty
     K8sSecret -.->|磁盘挂载证书文件: certs/ca.crt, server.crt, server.key| Netty
     ConfigMap -.->|挂载 application.yml 规则配置| AclAuthorizer
     
