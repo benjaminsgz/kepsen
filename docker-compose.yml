@@ -1,0 +1,68 @@
+name: kepsen
+
+services:
+  verify:
+    image: kepsen-build:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: source
+    command: ["./gradlew", "--no-daemon", "clean", "build"]
+    environment:
+      GRADLE_USER_HOME: /home/app/.gradle
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.caching=true
+      JAVA_TOOL_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - gradle-cache:/home/app/.gradle
+
+  test:
+    image: kepsen-build:local
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: source
+    command: ["./gradlew", "--no-daemon", "clean", "test"]
+    environment:
+      GRADLE_USER_HOME: /home/app/.gradle
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.caching=true
+      JAVA_TOOL_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - gradle-cache:/home/app/.gradle
+
+  publish:
+    image: kepsen-build:local
+    profiles: ["publish"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: source
+    command: ["./gradlew", "--no-daemon", "publish"]
+    environment:
+      GRADLE_USER_HOME: /home/app/.gradle
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.caching=true
+      JAVA_TOOL_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+      SNAPSHOT_VERSION: ${SNAPSHOT_VERSION:-}
+      GITHUB_ACTOR: ${GITHUB_ACTOR:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_PACKAGES_URL: ${GITHUB_PACKAGES_URL:-}
+    volumes:
+      - gradle-cache:/home/app/.gradle
+
+  mtls-smoke:
+    image: kepsen-mtls-smoke:local
+    profiles: ["smoke"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: mtls-smoke
+    command: ["./gradlew", "--no-daemon", "-p", "examples/mtls-smoke", "cleanTest", "test", "--rerun-tasks"]
+    environment:
+      GRADLE_USER_HOME: /home/app/.gradle
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.caching=true
+      JAVA_TOOL_OPTIONS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    volumes:
+      - gradle-cache:/home/app/.gradle
+
+volumes:
+  gradle-cache:

@@ -1,0 +1,106 @@
+plugins {
+    id "org.springframework.boot" version "3.4.5" apply false
+    id "io.spring.dependency-management" version "1.1.7" apply false
+    id "io.micronaut.application" version "4.6.2" apply false
+}
+
+ext {
+    grpcVersion = "1.75.0"
+    springBootVersion = "3.4.5"
+    grpcSpringVersion = "3.1.0.RELEASE"
+    micronautVersion = "4.10.14"
+    micronautGrpcVersion = "4.11.0"
+    junitVersion = "5.11.0"
+    junitPlatformVersion = "1.11.0"
+}
+
+subprojects {
+    apply plugin: "java-library"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.release = 21
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+}
+
+project(":common-rpc") {
+    dependencies {
+        api "io.grpc:grpc-api:${grpcVersion}"
+        api "io.grpc:grpc-netty:${grpcVersion}"
+        api "io.grpc:grpc-stub:${grpcVersion}"
+    }
+}
+
+project(":spring-boot-service") {
+    apply plugin: "org.springframework.boot"
+    apply plugin: "io.spring.dependency-management"
+
+    tasks.named("bootJar") {
+        enabled = false
+    }
+
+    tasks.named("jar") {
+        enabled = true
+    }
+
+    dependencies {
+        api project(":common-rpc")
+        implementation "uk.sienne:kepsen-spring-boot-starter:0.1.0-SNAPSHOT"
+        implementation "org.springframework.boot:spring-boot-starter"
+        implementation "net.devh:grpc-server-spring-boot-starter:${grpcSpringVersion}"
+    }
+}
+
+project(":micronaut-service") {
+    apply plugin: "io.micronaut.application"
+
+    micronaut {
+        version micronautVersion
+        runtime "netty"
+    }
+
+    tasks.named("dockerfile") {
+        enabled = false
+    }
+
+    dependencies {
+        annotationProcessor "io.micronaut:micronaut-inject-java:${micronautVersion}"
+        api project(":common-rpc")
+        implementation "uk.sienne:kepsen-micronaut:0.1.0-SNAPSHOT"
+        implementation "io.micronaut:micronaut-runtime:${micronautVersion}"
+        implementation "io.micronaut:micronaut-json-core:${micronautVersion}"
+        implementation "io.micronaut:micronaut-jackson-databind:${micronautVersion}"
+        implementation "io.micronaut.grpc:micronaut-grpc-runtime:${micronautGrpcVersion}"
+        runtimeOnly "ch.qos.logback:logback-classic:1.5.18"
+    }
+}
+
+project(":smoke-test") {
+    dependencies {
+        testImplementation project(":common-rpc")
+        testImplementation project(":spring-boot-service")
+        testImplementation project(":micronaut-service")
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+        testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
+        testImplementation "org.springframework.boot:spring-boot:${springBootVersion}"
+        testImplementation "io.micronaut:micronaut-runtime:${micronautVersion}"
+        testImplementation "io.micronaut.grpc:micronaut-grpc-runtime:${micronautGrpcVersion}"
+    }
+
+    tasks.named("test") {
+        systemProperty "kepsen.root", rootDir.parentFile.parentFile.absolutePath
+        testLogging {
+            showStandardStreams = true
+        }
+    }
+}

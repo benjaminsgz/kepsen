@@ -19,6 +19,7 @@ dependencies {
     compileOnly libs.spring.boot.autoconfigure
     compileOnly libs.grpc.spring.starter
     compileOnly libs.grpc.netty
+    compileOnly libs.grpc.netty.shaded
     compileOnly libs.slf4j.api
 
     annotationProcessor libs.spring.boot.autoconfigure.processor

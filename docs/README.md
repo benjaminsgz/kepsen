@@ -16,6 +16,10 @@ Welcome to the Kepsen documentation directory. This folder contains high-quality
 * **Description / 描述**: Progressive onboarding paths for new engineers. Features a core abstract conceptual implementation written in Python pseudocode, package and code navigation links, glossary definitions, and test/CI instructions.
 * **中文说明**: 面向新进研发人员的渐进式成长与沉浸路径。提供用 Python 编写的核心安全鉴权逻辑抽象、关键代码与包的直达链接、本地自测 TLS 证书生成、单元测试运行方式以及 40+ 核心技术词汇表。
 
+### 3. [Spring Boot / Micronaut mTLS Smoke 验证报告](MTLS_SMOKE_REPORT.zh.md)
+* **Description / 描述**: Docker-based cross-framework smoke verification for Spring Boot and Micronaut gRPC services using real mTLS certificates, peer certificate extraction, and ACL allow/deny paths.
+* **中文说明**: 在 Docker 内真实启动 Spring Boot 与 Micronaut gRPC 服务，验证双向 mTLS、URI SAN 身份提取、ACL 放行/拒绝、无客户端证书失败路径，并记录 shaded Netty 兼容修复。
+
 ---
 
 ## Repository References / 仓库核心代码直达

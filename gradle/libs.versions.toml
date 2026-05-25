@@ -8,6 +8,7 @@ junit         = "5.11.0"
 [libraries]
 grpc-api              = { module = "io.grpc:grpc-api",                                    version.ref = "grpc" }
 grpc-netty            = { module = "io.grpc:grpc-netty",                                  version.ref = "grpc" }
+grpc-netty-shaded     = { module = "io.grpc:grpc-netty-shaded",                           version.ref = "grpc" }
 grpc-stub             = { module = "io.grpc:grpc-stub",                                   version.ref = "grpc" }
 slf4j-api             = { module = "org.slf4j:slf4j-api",                                 version = "2.0.16" }
 micronaut-context     = { module = "io.micronaut:micronaut-context",                      version.ref = "micronaut" }
